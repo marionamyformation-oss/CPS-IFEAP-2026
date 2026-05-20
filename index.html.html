@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-évaluation CPS – IFEAP (version centralisée)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   CONFIG — remplacez SCRIPT_URL ci-dessous
+   ═══════════════════════════════════════ */
+:root{
+  --sage:#5c7a6b;--sage-light:#e8f0ec;--sage-mid:#a8c4b5;
+  --warm:#c4854a;--warm-light:#fdf3ea;
+  --ink:#1e2a22;--mist:#f4f7f5;--white:#ffffff;
+  --border:#d6e4dc;--radius:14px;--radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--mist);color:var(--ink);min-height:100vh}
+h1,h2,.display{font-family:'Lora',serif}
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#2e4a3a 0%,#3d6b52 45%,#4a7a5f 100%);padding:2.5rem 2rem 2rem;color:#fff;}
+.hero-blobs{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.hero-blobs svg{position:absolute;opacity:.18}
+.hero-blobs svg:nth-child(1){top:-60px;right:-40px;width:300px}
+.hero-blobs svg:nth-child(2){bottom:-80px;left:-60px;width:260px}
+.hero-title{font-size:1.55rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.3rem;position:relative;line-height:1.3}
+.hero-sub{font-size:.82rem;opacity:.7;letter-spacing:.06em;text-transform:uppercase;font-weight:300;position:relative;margin-bottom:1.5rem}
+.hero-pills{display:flex;gap:.5rem;flex-wrap:wrap;position:relative}
+.pill{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border-radius:30px;background:rgba(255,255,255,.12);font-size:.72rem;font-weight:400;border:.5px solid rgba(255,255,255,.2)}
+.main{max-width:740px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.card{background:#fff;border-radius:var(--radius);border:.5px solid var(--border);padding:1.5rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(30,42,34,.04)}
+.card-accent{border-left:3px solid var(--sage)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem 1.35rem;border-radius:var(--radius-sm);border:none;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .16s;font-family:'DM Sans',sans-serif}
+.btn-primary{background:var(--sage);color:#fff}
+.btn-primary:hover{background:#4a6b5a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(92,122,107,.3)}
+.btn-outline{background:#fff;color:var(--sage);border:.5px solid var(--sage)}
+.btn-outline:hover{background:var(--sage-light)}
+.btn-green{background:#fff;color:#2a7a4f;border:.5px solid #2a7a4f}
+.btn-green:hover{background:#eaf5ee}
+.btn-warm{background:var(--warm);color:#fff}
+.btn-warm:hover{background:#b0703a}
+.btn-danger{background:#fff;color:#c0392b;border:.5px solid #c0392b;font-size:.8rem;padding:.4rem .9rem}
+.btn-danger:hover{background:#fdf0ee}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.btn-home{display:flex;flex-direction:column;align-items:center;gap:.55rem;padding:1.4rem 1rem;border-radius:var(--radius);border:.5px solid var(--border);background:#fff;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;text-align:center;}
+.btn-home:hover{border-color:var(--sage);box-shadow:0 4px 16px rgba(92,122,107,.15);transform:translateY(-2px)}
+.btn-home-icon{width:44px;height:44px}
+.btn-home-label{font-size:.88rem;font-weight:500;color:var(--ink)}
+.btn-home-desc{font-size:.72rem;color:#888;font-weight:300}
+.alert{padding:.75rem 1rem;border-radius:var(--radius-sm);font-size:.83rem;margin-bottom:1rem}
+.alert-sage{background:var(--sage-light);color:#3a5e4a;border:.5px solid var(--sage-mid)}
+.alert-tip{background:#fffbea;border:.5px solid #f0d060;color:#7a5c00}
+.alert-warm{background:var(--warm-light);color:#8a5020;border:.5px solid #e8c090}
+.alert-error{background:#fdecea;color:#8a1a0a;border:.5px solid #f0a090}
+.alert-info{background:#e8f4fc;color:#1a4a6a;border:.5px solid #90c4e0}
+.section-title{font-family:'Lora',serif;font-size:.95rem;font-weight:600;color:var(--sage);border-bottom:.5px solid var(--border);padding-bottom:.5rem;margin-bottom:1rem}
+.intro-box{background:linear-gradient(135deg,var(--sage-light) 0%,#f0f5f0 100%);border:.5px solid var(--sage-mid);border-radius:var(--radius-sm);padding:1rem 1.15rem;font-size:.88rem;color:#2e4a3a;line-height:1.7;margin-bottom:1.25rem;font-style:italic}
+.intro-box::before{content:'"';font-family:'Lora',serif;font-size:2.5rem;color:var(--sage-mid);line-height:.5;display:block;margin-bottom:.3rem}
+label{display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem;color:#444}
+input[type=text],input[type=password],textarea{width:100%;padding:.55rem .8rem;border-radius:var(--radius-sm);border:.5px solid var(--border);font-size:.9rem;outline:none;font-family:'DM Sans',sans-serif;background:#fafcfb;transition:border .15s}
+input[type=text]:focus,input[type=password]:focus,textarea:focus{border-color:var(--sage);box-shadow:0 0 0 2px rgba(92,122,107,.12)}
+textarea{resize:vertical;min-height:78px;line-height:1.5}
+.question-text{font-size:.95rem;color:var(--ink);margin-bottom:.9rem;line-height:1.55;padding:.85rem 1rem .85rem 1.1rem;background:var(--sage-light);border-radius:var(--radius-sm);border-left:3px solid var(--sage);font-family:'Lora',serif;font-style:italic}
+.open-q-label{font-size:.8rem;color:var(--warm);font-weight:500;margin-bottom:.4rem;margin-top:1rem;display:flex;align-items:center;gap:.35rem}
+.likert{display:flex;gap:.35rem;flex-wrap:wrap}
+.likert input{display:none}
+.likert label{flex:1;min-width:50px;text-align:center;padding:.5rem .2rem;border-radius:var(--radius-sm);border:.5px solid var(--border);font-size:.76rem;cursor:pointer;transition:all .15s;background:#fafcfb;color:#666;line-height:1.3;font-family:'DM Sans',sans-serif}
+.likert input:checked+label{background:var(--sage);color:#fff;border-color:var(--sage);font-weight:500}
+.likert label:hover{border-color:var(--sage);color:var(--sage);background:var(--sage-light)}
+.likert-anchors{display:flex;justify-content:space-between;font-size:.65rem;color:#bbb;margin-top:.3rem;padding:0 .2rem}
+.step-bar{display:flex;gap:3px;margin-bottom:1.25rem}
+.step{flex:1;height:4px;border-radius:2px;background:#e4ede8;transition:background .2s}
+.step.active{background:var(--sage)}
+.step.done{background:var(--warm)}
+.qcm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.75rem}
+.qcm-opt input{display:none}
+.qcm-opt label{display:block;padding:.55rem .75rem;border-radius:var(--radius-sm);border:.5px solid var(--border);font-size:.85rem;cursor:pointer;transition:all .15s;background:#fafcfb;color:#444;text-align:center}
+.qcm-opt input:checked+label{background:#7b4fa6;color:#fff;border-color:#7b4fa6;font-weight:500}
+.qcm-opt label:hover{border-color:#7b4fa6;color:#7b4fa6;background:#f5effe}
+.qcm-box{background:#f8f5fc;border:.5px solid #d8c8ef;border-radius:var(--radius-sm);padding:1rem 1.1rem;margin-top:1rem}
+.qcm-box-title{font-size:.75rem;font-weight:600;color:#7b4fa6;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.06em}
+.radar-container{position:relative;width:100%;max-width:460px;margin:0 auto;height:400px}
+.legend{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;font-size:.8rem;margin:1rem 0}
+.legend-item{display:flex;align-items:center;gap:.4rem}
+.legend-dot{width:9px;height:9px;border-radius:50%}
+.participant-item{display:flex;align-items:center;justify-content:space-between;padding:.65rem .85rem;border-radius:var(--radius-sm);border:.5px solid var(--border);margin-bottom:.4rem;background:#fafcfb;transition:border .15s}
+.participant-item:hover{border-color:var(--sage-mid)}
+.participant-name{font-weight:500;font-size:.88rem;color:var(--ink)}
+.participant-badges{display:flex;gap:.4rem;margin-top:.2rem;flex-wrap:wrap}
+.badge{font-size:.68rem;padding:.2rem .55rem;border-radius:20px;font-weight:500}
+.badge-pre{background:#dce8fc;color:#1a3d8a}
+.badge-post{background:#d4f0e2;color:#1a6639}
+.no-data{text-align:center;color:#aaa;font-size:.85rem;padding:1.5rem 0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,35,25,.55);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);padding:1.5rem;max-width:580px;width:93%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h2{font-family:'Lora',serif;font-size:1.1rem;font-weight:600;margin-bottom:.75rem;color:var(--ink)}
+.tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:1rem}
+.tab{padding:.6rem 1rem;font-size:.83rem;cursor:pointer;border-bottom:2px solid transparent;color:#888;transition:all .15s}
+.tab.active{color:var(--sage);border-bottom-color:var(--sage);font-weight:500}
+.hidden{display:none!important}
+.error-flash{outline:2px solid #e74c3c;border-radius:var(--radius-sm)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner-dark{display:inline-block;width:14px;height:14px;border:2px solid rgba(92,122,107,.3);border-top-color:var(--sage);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.config-banner{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:.5px solid #f0c040;border-radius:var(--radius-sm);padding:1rem 1.15rem;margin-bottom:1rem;font-size:.83rem;color:#6a4800}
+.config-banner strong{color:#8a5c00}
+.sync-bar{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#888;padding:.4rem 0}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc}
+.sync-dot.ok{background:#2a9d5c}
+.sync-dot.err{background:#e74c3c}
+.sync-dot.loading{background:#f0a030;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media print{.no-print{display:none!important}body{background:#fff}.hero{background:#2e4a3a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.card{border:1px solid #ccc;box-shadow:none}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ACCUEIL
+══════════════════════════════════════ -->
+<div id="view-home">
+  <div class="hero">
+    <div class="hero-blobs">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="#a8d4bc" d="M44,-54C56,-44,63,-28,68,-9C73,10,76,31,67,47C58,63,37,73,16,76C-5,79,-27,75,-46,63C-65,51,-81,31,-82,10C-83,-11,-69,-33,-54,-49C-39,-65,-23,-75,-5,-73C13,-71,32,-64,44,-54Z" transform="translate(100 100)"/></svg>
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="#7ab89a" d="M42,-52C53,-41,59,-24,63,-5C67,14,69,35,59,50C49,65,27,74,5,73C-17,72,-40,61,-54,43C-68,25,-73,0,-68,-23C-63,-46,-48,-67,-29,-76C-10,-85,13,-82,32,-71C51,-60,66,-41,42,-52Z" transform="translate(100 100)"/></svg>
+    </div>
+    <h1 class="hero-title">Auto-évaluation des<br>compétences psycho-sociales</h1>
+    <p class="hero-sub">Outil de formation · IFEAP / CNEAP — version centralisée</p>
+    <div class="hero-pills">
+      <span class="pill"><span>🌱</span>Réflexivité</span>
+      <span class="pill"><span>🤝</span>Coopération</span>
+      <span class="pill"><span>💡</span>Créativité</span>
+      <span class="pill"><span>🧘</span>Régulation</span>
+      <span class="pill"><span>🔍</span>Esprit critique</span>
+    </div>
+  </div>
+  <div class="main">
+    <div id="config-warning" class="config-banner" style="display:none">
+      ⚙️ <strong>Configuration requise :</strong> avant d'utiliser cet outil, vous devez renseigner l'URL de votre Google Apps Script (<code>SCRIPT_URL</code>) dans la section <em>Paramètres</em> ci-dessous.
+      <br><span style="margin-top:.3rem;display:block">Si c'est déjà fait, ignorez ce message.</span>
+    </div>
+    <div class="card">
+      <div class="intro-box">Ce questionnaire n'est ni un test ni une évaluation. Il vise à vous permettre de réfléchir sur vos propres CPS dans les situations professionnelles et collectives.</div>
+      <div class="home-actions">
+        <button class="btn-home" onclick="showView('view-questionnaire')">
+          <svg class="btn-home-icon" viewBox="0 0 44 44" fill="none"><rect x="8" y="6" width="28" height="32" rx="4" fill="#e8f0ec" stroke="#5c7a6b" stroke-width="1.5"/><path d="M14 16 L30 16M14 22 L30 22M14 28 L24 28" stroke="#5c7a6b" stroke-width="1.5" stroke-linecap="round"/><circle cx="32" cy="32" r="7" fill="#c4854a"/><path d="M29 32 L31 34 L35 30" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="btn-home-label">Remplir le questionnaire</span>
+          <span class="btn-home-desc">Stagiaires</span>
+        </button>
+        <button class="btn-home" onclick="askAdminPwd()">
+          <svg class="btn-home-icon" viewBox="0 0 44 44" fill="none"><rect x="6" y="10" width="32" height="24" rx="4" fill="#e8f0ec" stroke="#5c7a6b" stroke-width="1.5"/><rect x="11" y="20" width="6" height="8" rx="1" fill="#a8c4b5"/><rect x="19" y="16" width="6" height="12" rx="1" fill="#5c7a6b"/><rect x="27" y="22" width="6" height="6" rx="1" fill="#c4854a"/></svg>
+          <span class="btn-home-label">Tableau de bord</span>
+          <span class="btn-home-desc">Formatrice</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PARAMÈTRES -->
+    <div class="card" id="config-card">
+      <div class="section-title">⚙️ Paramètres de connexion</div>
+      <p style="font-size:.83rem;color:#666;margin-bottom:.75rem">Renseignez l'URL de votre Google Apps Script pour activer la synchronisation des réponses.</p>
+      <label for="inp-script-url">URL Google Apps Script (Web App)</label>
+      <input type="text" id="inp-script-url" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:.78rem" />
+      <div style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center">
+        <button class="btn btn-primary" onclick="saveScriptUrl()" style="font-size:.8rem;padding:.45rem 1rem">Enregistrer</button>
+        <button class="btn btn-outline" onclick="testConnection()" style="font-size:.8rem;padding:.45rem 1rem">Tester la connexion</button>
+        <span id="test-result" style="font-size:.78rem;color:#666"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     QUESTIONNAIRE
+══════════════════════════════════════ -->
+<div id="view-questionnaire" class="hidden">
+  <div class="hero" style="padding:1.5rem 2rem">
+    <div class="hero-blobs"><svg viewBox="0 0 200 200"><path fill="#a8d4bc" d="M44,-54C56,-44,63,-28,68,-9C73,10,76,31,67,47C58,63,37,73,16,76C-5,79,-27,75,-46,63C-65,51,-81,31,-82,10C-83,-11,-69,-33,-54,-49C-39,-65,-23,-75,-5,-73C13,-71,32,-64,44,-54Z" transform="translate(100 100)"/></svg></div>
+    <div style="position:relative;display:flex;align-items:center;gap:1rem">
+      <button class="btn no-print" style="background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.4);color:#fff;font-size:.8rem;padding:.4rem .9rem" onclick="showView('view-home')">← Retour</button>
+      <div><h1 class="hero-title" style="font-size:1.1rem;margin-bottom:.1rem">Questionnaire CPS</h1><p class="hero-sub" style="margin-bottom:0">Auto-évaluation · IFEAP / CNEAP</p></div>
+    </div>
+  </div>
+  <div class="main">
+    <div id="step-identity" class="card card-accent">
+      <div class="intro-box">Ce questionnaire n'est ni un test ni une évaluation. Il vise à vous permettre de réfléchir sur vos propres CPS dans les situations professionnelles et collectives. Pour chaque affirmation, positionnez-vous et illustrez votre réponse avec une situation vécue.</div>
+      <div class="section-title">Identification</div>
+      <div style="margin-bottom:1rem">
+        <label for="inp-name">Votre prénom et initiale du nom</label>
+        <input type="text" id="inp-name" placeholder="Ex : Marie D." />
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label>Type de passation</label>
+        <div style="display:flex;gap:1.25rem;flex-wrap:wrap;margin-top:.4rem">
+          <label style="display:flex;align-items:center;gap:.4rem;font-weight:400;cursor:pointer;font-size:.88rem"><input type="radio" name="session-type" value="pre" checked /><span>Avant la formation</span></label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-weight:400;cursor:pointer;font-size:.88rem"><input type="radio" name="session-type" value="post" /><span>Après la formation</span></label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="startQuestionnaire()">Commencer →</button>
+    </div>
+    <div id="step-questions" class="hidden">
+      <div class="step-bar" id="step-bar"></div>
+      <div id="questions-container"></div>
+      <div style="display:flex;gap:.75rem;margin-top:1rem" class="no-print">
+        <button class="btn btn-outline" id="btn-prev" onclick="prevQuestion()">← Précédent</button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Suivant →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RÉSULTAT STAGIAIRE
+══════════════════════════════════════ -->
+<div id="view-result" class="hidden">
+  <div class="hero" style="padding:1.5rem 2rem">
+    <div class="hero-blobs"><svg viewBox="0 0 200 200"><path fill="#a8d4bc" d="M44,-54C56,-44,63,-28,68,-9C73,10,76,31,67,47C58,63,37,73,16,76C-5,79,-27,75,-46,63C-65,51,-81,31,-82,10C-83,-11,-69,-33,-54,-49C-39,-65,-23,-75,-5,-73C13,-71,32,-64,44,-54Z" transform="translate(100 100)"/></svg></div>
+    <div style="position:relative;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+      <div>
+        <h1 id="result-title" class="hero-title" style="font-size:1.1rem;margin-bottom:.1rem">Mon radar CPS</h1>
+        <p id="result-subtitle" class="hero-sub" style="margin-bottom:0"></p>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap" class="no-print">
+        <button class="btn no-print" style="background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.4);color:#fff;font-size:.8rem;padding:.4rem .9rem" onclick="showView('view-home')">← Accueil</button>
+        <button class="btn btn-primary no-print" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div id="send-status" class="alert" style="display:none"></div>
+    <div class="card">
+      <div class="legend" id="result-legend"></div>
+      <div class="radar-container"><canvas id="resultChart"></canvas></div>
+      <div id="result-qcm-box"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Détail des scores</div>
+      <div id="result-scores-table"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TABLEAU DE BORD FORMATRICE
+══════════════════════════════════════ -->
+<div id="view-admin" class="hidden">
+  <div class="hero" style="padding:1.5rem 2rem">
+    <div class="hero-blobs"><svg viewBox="0 0 200 200"><path fill="#a8d4bc" d="M44,-54C56,-44,63,-28,68,-9C73,10,76,31,67,47C58,63,37,73,16,76C-5,79,-27,75,-46,63C-65,51,-81,31,-82,10C-83,-11,-69,-33,-54,-49C-39,-65,-23,-75,-5,-73C13,-71,32,-64,44,-54Z" transform="translate(100 100)"/></svg></div>
+    <div style="position:relative;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <button class="btn no-print" style="background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.4);color:#fff;font-size:.8rem;padding:.4rem .9rem" onclick="showView('view-home')">← Retour</button>
+        <div><h1 class="hero-title" style="font-size:1.1rem;margin-bottom:.1rem">Tableau de bord</h1><p class="hero-sub" style="margin-bottom:0">Formatrice · IFEAP / CNEAP</p></div>
+      </div>
+      <div class="sync-bar no-print" id="sync-bar">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+
+    <div class="card no-print">
+      <div class="section-title">Synchronisation Google Sheets</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary" id="btn-sync" onclick="syncFromSheet()">🔄 Actualiser les données</button>
+        <button class="btn btn-outline" onclick="printCollectiveRadar()">🌐 Radar collectif (impression)</button>
+        <button class="btn btn-green" onclick="exportCSV()">📊 Exporter CSV</button>
+      </div>
+      <div id="last-sync" style="font-size:.75rem;color:#aaa;margin-top:.6rem"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Radar collectif – aperçu</div>
+      <div id="collective-stats"></div>
+      <div class="legend" id="collective-legend"></div>
+      <div class="radar-container"><canvas id="collectiveChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Participants (<span id="participants-count">0</span>)</div>
+      <div id="participants-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL MOT DE PASSE -->
+<div class="modal-overlay" id="modal-pwd">
+  <div class="modal" style="max-width:360px">
+    <h2>Accès réservé</h2>
+    <p style="font-size:.85rem;color:#666;margin-bottom:1rem">Tableau de bord – formatrice uniquement</p>
+    <input type="password" id="pwd-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkPwd()" />
+    <p id="pwd-error" style="color:#c0392b;font-size:.8rem;margin-top:.4rem;min-height:1rem"></p>
+    <div style="display:flex;gap:.5rem;margin-top:.75rem">
+      <button class="btn btn-primary" onclick="checkPwd()">Accéder</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-pwd')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RADAR PARTICIPANT -->
+<div class="modal-overlay" id="modal-radar">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h2 id="modal-name"></h2>
+      <button class="btn btn-primary" onclick="printRadar()">🖨️ Imprimer</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('radar')">Radar</div>
+      <div class="tab" onclick="switchTab('scores')">Scores & réponses</div>
+    </div>
+    <div id="tab-radar">
+      <div class="legend" id="modal-legend"></div>
+      <div class="radar-container" style="height:340px"><canvas id="modalChart"></canvas></div>
+      <div id="modal-qcm-box"></div>
+    </div>
+    <div id="tab-scores" class="hidden"><div id="modal-scores-table"></div></div>
+    <div style="margin-top:1rem;text-align:right"><button class="btn btn-outline" onclick="closeModal('modal-radar')">Fermer</button></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIGURATION — à modifier si besoin
+// ═══════════════════════════════════════════
+const ADMIN_PWD = 'ifeap2025';
+const SEP = ';';
+
+// URL du Apps Script — lue depuis localStorage ou saisie dans l'interface
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqva20WsB7wFd8i9FUKUWkufllL2tcGYUzFFESVjXOWUEDOqoAF5Sbn--NI4cLv6Hxiw/exec';
+function getScriptUrl(){
+  return localStorage.getItem('cps_script_url') || DEFAULT_SCRIPT_URL;
+}
+function saveScriptUrl(){
+  const v = document.getElementById('inp-script-url').value.trim();
+  if(!v){alert('Veuillez saisir une URL valide.');return;}
+  localStorage.setItem('cps_script_url',v);
+  document.getElementById('config-warning').style.display='none';
+  document.getElementById('test-result').innerHTML='<span style="color:var(--sage)">✓ URL enregistrée</span>';
+}
+async function testConnection(){
+  const url = getScriptUrl();
+  if(!url){alert('Veuillez d\'abord enregistrer l\'URL du script.');return;}
+  const el = document.getElementById('test-result');
+  el.innerHTML='<span class="spinner-dark"></span> Test…';
+  try{
+    await fetch(url+'?action=ping',{method:'GET',mode:'no-cors'});
+    el.innerHTML='<span style="color:var(--sage)">✓ Script joignable (vérifiez les données dans votre Sheet)</span>';
+  }catch(e){
+    el.innerHTML='<span style="color:#c0392b">✗ Connexion impossible</span>';
+  }
+}
+
+// Pré-remplir le champ URL si déjà enregistré
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved = getScriptUrl();
+  if(saved){
+    document.getElementById('inp-script-url').value = saved;
+    document.getElementById('config-warning').style.display='none';
+  }
+});
+
+// ═══════════════════════════════════════════
+//  DONNÉES DES ITEMS
+// ═══════════════════════════════════════════
+const ITEMS = [
+  {id:'q01',label:'Calme & improvisation',   question:"Face à une situation imprévue, je garde mon calme et j'improvise.",       openQ:"Racontez une situation où vous avez dû vous adapter."},
+  {id:'q02',label:'Coopération',              question:"Je sais coopérer avec des personnes très différentes de moi.",             openQ:"Donnez un exemple de collaboration réussie ou difficile."},
+  {id:'q03',label:"Prise d'initiative",       question:"Je prends des initiatives sans attendre qu'on me les demande.",           openQ:"Racontez une initiative dont vous êtes fier(e)."},
+  {id:'q04',label:'Expression assertive',     question:"J'arrive à exprimer clairement mes besoins ou mes limites.",              openQ:"Dans quelle situation cela vous a-t-il été utile ?"},
+  {id:'q05',label:'Encourager les autres',    question:"Je suis capable d'encourager les autres même quand moi-même je doute.",   openQ:"Décrivez une situation où vous avez soutenu quelqu'un."},
+  {id:'q06',label:'Climat de confiance',      question:"Je me sens capable de créer un climat de confiance dans un groupe.",      openQ:"Exemple en classe ou en équipe."},
+  {id:'q07',label:'Analyse & recul',          question:"Je sais analyser une situation avec recul avant d'agir.",                 openQ:"Exemple d'une décision prise après réflexion."},
+  {id:'q08',label:'Accueil du feedback',      question:"J'accepte facilement les retours ou critiques.",                         openQ:"Racontez une situation où un feedback vous a fait évoluer."},
+  {id:'q09',label:'Gestion des émotions',     question:"Je sais gérer mes émotions dans un contexte professionnel.",              openQ:"Décrivez un moment où cela a été difficile... ou réussi."},
+  {id:'q10',label:'Expérimentation',          question:"Je suis à l'aise avec l'idée d'expérimenter des pratiques nouvelles.",   openQ:"Racontez une expérience pédagogique testée."},
+  {id:'q11',label:'Difficulté → opportunité', question:"Je sais transformer une difficulté en opportunité d'apprentissage.",     openQ:"Exemple vécu avec des élèves ou collègues."},
+  {id:'q12',label:"Demander de l'aide",       question:"Je sais demander de l'aide quand c'est nécessaire.",                     openQ:"Racontez une situation où demander de l'aide a été déterminant."}
+];
+const QCM_OPTS = ["L'audace","L'empathie","La coopération","La créativité","La résilience","L'esprit critique","Autre"];
+const LEVELS = [{v:'1',desc:"Pas du tout d'accord"},{v:'2',desc:"Plutôt pas d'accord"},{v:'3',desc:"Ni l'un ni l'autre"},{v:'4',desc:"Plutôt d'accord"},{v:'5',desc:"Tout à fait d'accord"}];
+const TOTAL_STEPS = ITEMS.length + 1;
+
+// ═══════════════════════════════════════════
+//  ÉTAT QUESTIONNAIRE
+// ═══════════════════════════════════════════
+let currentQ=0, answers={}, openAnswers={}, qcmAnswer='', qcmOther='', currentName='', currentType='pre';
+
+// ═══════════════════════════════════════════
+//  BASE LOCALE (cache des réponses admin)
+// ═══════════════════════════════════════════
+function getDb(){try{return JSON.parse(localStorage.getItem('cps_v3_central')||'{}')}catch{return{}}}
+function saveDb(db){localStorage.setItem('cps_v3_central',JSON.stringify(db))}
+function r2(n){return Math.round(n*100)/100}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function showView(id){
+  document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='view-admin') renderAdmin();
+}
+function askAdminPwd(){
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-error').textContent='';
+  document.getElementById('modal-pwd').classList.add('open');
+  setTimeout(()=>document.getElementById('pwd-input').focus(),100);
+}
+function checkPwd(){
+  if(document.getElementById('pwd-input').value===ADMIN_PWD){
+    closeModal('modal-pwd');showView('view-admin');
+  }else{
+    document.getElementById('pwd-error').textContent='Mot de passe incorrect.';
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ═══════════════════════════════════════════
+//  QUESTIONNAIRE
+// ═══════════════════════════════════════════
+function startQuestionnaire(){
+  const nameEl=document.getElementById('inp-name');
+  currentName=nameEl.value.trim();
+  if(!currentName){nameEl.style.outline='2px solid #e74c3c';nameEl.focus();return;}
+  nameEl.style.outline='';
+  currentType=document.querySelector('input[name="session-type"]:checked').value;
+  currentQ=0;answers={};openAnswers={};qcmAnswer='';qcmOther='';
+  document.getElementById('step-identity').classList.add('hidden');
+  document.getElementById('step-questions').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderStepBar(){
+  document.getElementById('step-bar').innerHTML=Array.from({length:TOTAL_STEPS},(_,i)=>
+    `<div class="step ${i<currentQ?'done':i===currentQ?'active':''}"></div>`).join('');
+}
+
+function renderQuestion(){
+  renderStepBar();window.scrollTo(0,0);
+  if(currentQ===ITEMS.length){renderQcmStep();return;}
+  const item=ITEMS[currentQ],saved=answers[item.id]||null,savedOpen=openAnswers[item.id]||'';
+  document.getElementById('questions-container').innerHTML=`
+    <div class="card card-accent">
+      <div style="font-size:.72rem;color:var(--sage-mid);margin-bottom:.75rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase">Affirmation ${currentQ+1} / ${ITEMS.length}</div>
+      <div class="question-text">${item.question}</div>
+      <div class="likert" id="likert-${item.id}">
+        ${LEVELS.map(l=>`<input type="radio" name="${item.id}" id="${item.id}_${l.v}" value="${l.v}" ${saved===l.v?'checked':''}><label for="${item.id}_${l.v}">${l.v}<br><span style="font-size:.6rem">${l.desc}</span></label>`).join('')}
+      </div>
+      <div class="likert-anchors"><span>Pas du tout d'accord</span><span>Tout à fait d'accord</span></div>
+      <div style="margin-top:1.1rem">
+        <div class="open-q-label">✏️ ${item.openQ}</div>
+        <textarea id="open-${item.id}" placeholder="Votre réponse (facultatif)...">${savedOpen}</textarea>
+      </div>
+    </div>`;
+  document.getElementById('btn-prev').style.visibility=currentQ===0?'hidden':'visible';
+  document.getElementById('btn-next').textContent=currentQ===TOTAL_STEPS-2?'Question finale →':'Suivant →';
+}
+
+function renderQcmStep(){
+  const savedQcm=qcmAnswer||'',savedOther=qcmOther||'';
+  document.getElementById('questions-container').innerHTML=`
+    <div class="card card-accent">
+      <div style="font-size:.72rem;color:#9b6fc0;margin-bottom:.75rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase">Question finale</div>
+      <div class="question-text" style="border-left-color:#7b4fa6;background:#f8f5fc">Si vous étiez une compétence psychosociale incarnée, vous seriez ?</div>
+      <div class="qcm-grid">
+        ${QCM_OPTS.filter(o=>o!=='Autre').map(o=>`<div class="qcm-opt"><input type="radio" name="qcm" id="qcm_${o.replace(/'/g,'_')}" value="${o}" ${savedQcm===o?'checked':''}><label for="qcm_${o.replace(/'/g,'_')}">${o}</label></div>`).join('')}
+        <div class="qcm-opt" style="grid-column:1/-1"><input type="radio" name="qcm" id="qcm_autre" value="Autre" ${savedQcm==='Autre'?'checked':''} onchange="document.getElementById('qcm-other-input').style.display='block'"><label for="qcm_autre">Autre…</label></div>
+      </div>
+      <input type="text" id="qcm-other-input" placeholder="Précisez…" value="${savedOther}" style="margin-top:.6rem;display:${savedQcm==='Autre'?'block':'none'}" />
+    </div>`;
+  document.querySelectorAll('input[name="qcm"]').forEach(r=>r.addEventListener('change',()=>{
+    document.getElementById('qcm-other-input').style.display=r.value==='Autre'?'block':'none';
+  }));
+  document.getElementById('btn-prev').style.visibility='visible';
+  document.getElementById('btn-next').textContent='Valider ✓';
+}
+
+function collectCurrent(){
+  if(currentQ===ITEMS.length){
+    const r=document.querySelector('input[name="qcm"]:checked');
+    qcmAnswer=r?r.value:'';
+    qcmOther=document.getElementById('qcm-other-input')?.value.trim()||'';
+    return true;
+  }
+  const item=ITEMS[currentQ],val=document.querySelector(`input[name="${item.id}"]:checked`);
+  const openEl=document.getElementById(`open-${item.id}`);
+  if(openEl) openAnswers[item.id]=openEl.value.trim();
+  if(!val){
+    document.getElementById(`likert-${item.id}`).classList.add('error-flash');
+    setTimeout(()=>document.getElementById(`likert-${item.id}`)?.classList.remove('error-flash'),1200);
+    return false;
+  }
+  answers[item.id]=val.value;return true;
+}
+
+function nextQuestion(){
+  if(!collectCurrent())return;
+  if(currentQ===ITEMS.length){
+    saveLocalResponse();
+    showResultView();
+    sendToGoogleSheet();
+  } else {
+    currentQ++;renderQuestion();
+  }
+}
+function prevQuestion(){collectCurrent();if(currentQ>0){currentQ--;renderQuestion();}}
+
+function computeScores(ans){
+  const s={};ITEMS.forEach(item=>{s[item.id]=parseInt(ans[item.id]||3);});return s;
+}
+
+function saveLocalResponse(){
+  const db=getDb();if(!db[currentName]) db[currentName]={};
+  const qcmFinal=qcmAnswer==='Autre'&&qcmOther?`Autre : ${qcmOther}`:qcmAnswer;
+  db[currentName][currentType]={
+    scores:computeScores(answers),
+    openAnswers:{...openAnswers},
+    qcm:qcmFinal,
+    date:new Date().toLocaleDateString('fr-FR')
+  };
+  saveDb(db);
+}
+
+// ═══════════════════════════════════════════
+//  ENVOI GOOGLE SHEETS
+// ═══════════════════════════════════════════
+async function sendToGoogleSheet(){
+  const statusEl = document.getElementById('send-status');
+  const url = getScriptUrl();
+  if(!url){
+    statusEl.style.display='block';
+    statusEl.className='alert alert-tip';
+    statusEl.innerHTML='⚠️ Aucune URL de script configurée. Vos réponses sont sauvegardées localement uniquement.';
+    setTimeout(()=>{statusEl.style.display='none';},5000);
+    return;
+  }
+
+  statusEl.style.display='block';
+  statusEl.className='alert alert-sage';
+  statusEl.innerHTML='<span class="spinner"></span> Envoi de vos réponses en cours…';
+
+  const qcmFinal = qcmAnswer==='Autre'&&qcmOther ? `Autre : ${qcmOther}` : qcmAnswer;
+  const scores = computeScores(answers);
+  const payload = {
+    action:'write',
+    nom: currentName,
+    passation: currentType==='pre' ? 'Avant la formation' : 'Après la formation',
+    date: new Date().toLocaleDateString('fr-FR'),
+    q01:scores.q01,q02:scores.q02,q03:scores.q03,q04:scores.q04,
+    q05:scores.q05,q06:scores.q06,q07:scores.q07,q08:scores.q08,
+    q09:scores.q09,q10:scores.q10,q11:scores.q11,q12:scores.q12,
+    o01:openAnswers.q01||'',o02:openAnswers.q02||'',o03:openAnswers.q03||'',
+    o04:openAnswers.q04||'',o05:openAnswers.q05||'',o06:openAnswers.q06||'',
+    o07:openAnswers.q07||'',o08:openAnswers.q08||'',o09:openAnswers.q09||'',
+    o10:openAnswers.q10||'',o11:openAnswers.q11||'',o12:openAnswers.q12||'',
+    qcm: qcmFinal
+  };
+
+  try {
+    await fetch(url, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    statusEl.className='alert alert-sage';
+    statusEl.innerHTML='✅ Vos réponses ont bien été transmises à la formatrice.';
+  } catch(err) {
+    statusEl.className='alert alert-error';
+    statusEl.innerHTML='⚠️ Envoi impossible (pas de connexion ?). Vos réponses sont sauvegardées localement.';
+  }
+  setTimeout(()=>{statusEl.style.display='none';},7000);
+}
+
+// ═══════════════════════════════════════════
+//  VUE RÉSULTAT STAGIAIRE
+// ═══════════════════════════════════════════
+function showResultView(){
+  showView('view-result');
+  const db=getDb(),entry=db[currentName];
+  document.getElementById('result-title').textContent=`Radar CPS — ${currentName}`;
+  document.getElementById('result-subtitle').textContent=currentType==='pre'?'Passation avant la formation':'Après la formation';
+  const current=computeScores(answers);
+  const pre=currentType==='pre'?current:entry?.pre?.scores;
+  const post=currentType==='post'?current:entry?.post?.scores;
+  buildRadar('resultChart',pre,post,'result-legend');
+  const qcmFinal=qcmAnswer==='Autre'&&qcmOther?`Autre : ${qcmOther}`:qcmAnswer;
+  buildQcmBox('result-qcm-box',entry?.pre?.qcm,entry?.post?.qcm,currentType,qcmFinal);
+  buildScoresTable('result-scores-table',pre,post);
+}
+
+// ═══════════════════════════════════════════
+//  SYNC DEPUIS GOOGLE SHEETS (lecture)
+// ═══════════════════════════════════════════
+async function syncFromSheet(){
+  const url = getScriptUrl();
+  if(!url){
+    alert('Veuillez configurer l\'URL du script dans les paramètres (accueil).');
+    return;
+  }
+  const btn = document.getElementById('btn-sync');
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Chargement…';
+  dot.className='sync-dot loading';
+  label.textContent='Synchronisation…';
+
+  try {
+    const resp = await fetch(url+'?action=read', {method:'GET'});
+    const data = await resp.json();
+
+    if(!data || !data.rows){throw new Error('Format inattendu');}
+
+    // Reconstruire la base locale depuis les lignes du sheet
+    const db = {};
+    data.rows.forEach(row => {
+      const nom = row.nom;
+      const type = row.passation && row.passation.toLowerCase().includes('avant') ? 'pre' : 'post';
+      if(!nom) return;
+      if(!db[nom]) db[nom]={};
+      const scores={};
+      ITEMS.forEach((item,i)=>{
+        const key = 'q'+(i+1<10?'0'+(i+1):i+1);
+        scores[item.id] = parseInt(row[key])||3;
+      });
+      const openAnswers={};
+      ITEMS.forEach((item,i)=>{
+        const key = 'o'+(i+1<10?'0'+(i+1):i+1);
+        openAnswers[item.id] = row[key]||'';
+      });
+      db[nom][type]={scores,openAnswers,qcm:row.qcm||'',date:row.date||''};
+    });
+    saveDb(db);
+    renderAdmin();
+    dot.className='sync-dot ok';
+    const now = new Date().toLocaleTimeString('fr-FR');
+    label.textContent='Synchronisé à '+now;
+    document.getElementById('last-sync').textContent='Dernière synchronisation : '+new Date().toLocaleString('fr-FR');
+  } catch(e) {
+    dot.className='sync-dot err';
+    label.textContent='Erreur de synchronisation';
+    console.error(e);
+    alert('Impossible de lire les données depuis Google Sheets.\nDétail : '+e.message+'\n\nVérifiez que votre Apps Script est bien déployé en "Accessible à tous".');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='🔄 Actualiser les données';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  RENDU ADMIN
+// ═══════════════════════════════════════════
+function renderAdmin(){
+  const db=getDb(),names=Object.keys(db),col=computeCollective(db);
+  document.getElementById('participants-count').textContent=names.length;
+
+  if(col.nPre===0&&col.nPost===0){
+    document.getElementById('collective-stats').innerHTML='<p class="no-data">Aucune donnée disponible. Cliquez sur "Actualiser les données".</p>';
+    if(window._collectiveChart) window._collectiveChart.destroy();
+  } else {
+    document.getElementById('collective-stats').innerHTML=`<div style="display:flex;gap:1rem;margin-bottom:1rem;font-size:.82rem;flex-wrap:wrap">${col.nPre?`<span style="color:#3c5ba9">● ${col.nPre} passation${col.nPre>1?'s':''} avant</span>`:''}${col.nPost?`<span style="color:#2a9d5c">● ${col.nPost} passation${col.nPost>1?'s':''} après</span>`:''}</div>`;
+    buildRadar('collectiveChart',col.pre,col.post,'collective-legend');
+  }
+
+  const list=document.getElementById('participants-list');
+  if(!names.length){
+    list.innerHTML='<p class="no-data">Aucun participant. Cliquez sur "Actualiser les données" pour charger depuis Google Sheets.</p>';
+    return;
+  }
+  list.innerHTML=names.sort().map(name=>{
+    const e=db[name];
+    const safeName=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<div class="participant-item">
+      <div>
+        <div class="participant-name">${name}</div>
+        <div class="participant-badges">
+          ${e.pre?`<span class="badge badge-pre">Avant — ${e.pre.date}</span>`:'<span class="badge" style="background:#f0ede5;color:#aaa">Avant manquant</span>'}
+          ${e.post?`<span class="badge badge-post">Après — ${e.post.date}</span>`:'<span class="badge" style="background:#f0ede5;color:#aaa">Après manquant</span>'}
+        </div>
+      </div>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-outline" style="font-size:.75rem;padding:.35rem .7rem" onclick="openModal('${safeName}')">📊 Radar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function computeCollective(db){
+  if(!db) db=getDb();
+  const names=Object.keys(db),preScores=[],postScores=[];
+  names.forEach(n=>{
+    if(db[n].pre) preScores.push(db[n].pre.scores);
+    if(db[n].post) postScores.push(db[n].post.scores);
+  });
+  const avg=arr=>{
+    if(!arr.length) return null;
+    const s={};
+    ITEMS.forEach(item=>{s[item.id]=r2(arr.reduce((a,sc)=>a+(sc[item.id]||0),0)/arr.length);});
+    return s;
+  };
+  return{pre:avg(preScores),post:avg(postScores),nPre:preScores.length,nPost:postScores.length};
+}
+
+// ═══════════════════════════════════════════
+//  GRAPHIQUES
+// ═══════════════════════════════════════════
+function buildRadar(canvasId,pre,post,legendId){
+  const labels=ITEMS.map(i=>i.label),datasets=[];
+  if(pre) datasets.push({label:'Avant formation',data:ITEMS.map(i=>pre[i.id]||1),borderColor:'#3c5ba9',backgroundColor:'rgba(60,91,169,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#3c5ba9'});
+  if(post) datasets.push({label:'Après formation',data:ITEMS.map(i=>post[i.id]||1),borderColor:'#2a9d5c',backgroundColor:'rgba(42,157,92,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#2a9d5c'});
+  const ctx=document.getElementById(canvasId);
+  if(ctx._ci) ctx._ci.destroy();
+  ctx._ci=new Chart(ctx,{type:'radar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:1,max:5,ticks:{stepSize:1,font:{size:9},color:'#999'},pointLabels:{font:{size:10},color:'#333'},grid:{color:'rgba(0,0,0,.07)'},angleLines:{color:'rgba(0,0,0,.09)'}}},plugins:{legend:{display:false}},elements:{line:{tension:.15}}}});
+  const leg=document.getElementById(legendId);
+  if(leg) leg.innerHTML=datasets.map(d=>`<div class="legend-item"><div class="legend-dot" style="background:${d.borderColor}"></div><span style="color:#555;font-size:.82rem">${d.label}</span></div>`).join('');
+}
+
+function buildQcmBox(containerId,preQcm,postQcm,ct,cq){
+  const el=document.getElementById(containerId);if(!el)return;
+  const dp=ct==='pre'?cq:preQcm,dpo=ct==='post'?cq:postQcm;
+  if(!dp&&!dpo){el.innerHTML='';return;}
+  el.innerHTML=`<div class="qcm-box" style="margin-top:1rem"><div class="qcm-box-title">Si vous étiez une CPS incarnée…</div><div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.4rem">${dp?`<div><div style="font-size:.7rem;color:#7b4fa6;margin-bottom:.2rem">Avant la formation</div><div style="font-weight:500;font-family:'Lora',serif">${dp}</div></div>`:''}${dpo?`<div><div style="font-size:.7rem;color:#2a9d5c;margin-bottom:.2rem">Après la formation</div><div style="font-weight:500;font-family:'Lora',serif">${dpo}</div></div>`:''}</div></div>`;
+}
+
+function buildScoresTable(containerId,pre,post){
+  const el=document.getElementById(containerId);if(!el)return;
+  const hasEvol=pre&&post;
+  el.innerHTML=`<table style="width:100%;font-size:.82rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:.4rem .3rem;color:#888;font-weight:500">Compétence</th>${pre?'<th style="text-align:center;padding:.4rem;color:#3c5ba9;font-weight:500">Avant</th>':''}${post?'<th style="text-align:center;padding:.4rem;color:#2a9d5c;font-weight:500">Après</th>':''}${hasEvol?'<th style="text-align:center;padding:.4rem;color:#666;font-weight:500">Évol.</th>':''}</tr></thead><tbody>${ITEMS.map(item=>{const pr=pre?pre[item.id]:null,po=post?post[item.id]:null,diff=pr&&po?po-pr:null,dc=diff===null?'':diff>0?'#2a9d5c':diff<0?'#c0392b':'#888';return `<tr style="border-top:.5px solid #f0ede5"><td style="padding:.45rem .3rem;font-size:.78rem;color:#444">${item.label}</td>${pr!==null?`<td style="text-align:center;font-weight:600">${pr}</td>`:''}${po!==null?`<td style="text-align:center;font-weight:600">${po}</td>`:''}${diff!==null?`<td style="text-align:center;color:${dc};font-weight:700">${diff>0?'+':''}${diff}</td>`:''}</tr>`;}).join('')}</tbody></table>`;
+}
+
+function buildFullScoresTable(containerId,preData,postData){
+  const el=document.getElementById(containerId);if(!el)return;
+  const pre=preData?.scores,post=postData?.scores,preOpen=preData?.openAnswers||{},postOpen=postData?.openAnswers||{};
+  const hasEvol=pre&&post;
+  let html=`<table style="width:100%;font-size:.8rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:.4rem .3rem;color:#888;font-weight:500">Compétence</th>${pre?'<th style="text-align:center;color:#3c5ba9;padding:.4rem;font-weight:500">Avant</th>':''}${post?'<th style="text-align:center;color:#2a9d5c;padding:.4rem;font-weight:500">Après</th>':''}${hasEvol?'<th style="text-align:center;color:#666;padding:.4rem;font-weight:500">Évol.</th>':''}</tr></thead><tbody>`;
+  ITEMS.forEach(item=>{
+    const pr=pre?pre[item.id]:null,po=post?post[item.id]:null,diff=pr&&po?po-pr:null,dc=diff===null?'':diff>0?'#2a9d5c':diff<0?'#c0392b':'#888';
+    const oP=preOpen[item.id]||'',oPo=postOpen[item.id]||'';
+    html+=`<tr style="border-top:.5px solid #f0ede5"><td style="padding:.4rem .3rem;font-size:.77rem;color:#444;vertical-align:top"><div style="font-weight:500;margin-bottom:.2rem">${item.label}</div>${oP?`<div style="color:#3c5ba9;font-size:.7rem;font-style:italic;margin-bottom:.15rem">Avant : ${oP}</div>`:''}${oPo?`<div style="color:#2a9d5c;font-size:.7rem;font-style:italic">Après : ${oPo}</div>`:''}</td>${pr!==null?`<td style="text-align:center;font-weight:600;vertical-align:top;padding:.4rem">${pr}</td>`:''}${po!==null?`<td style="text-align:center;font-weight:600;vertical-align:top;padding:.4rem">${po}</td>`:''}${diff!==null?`<td style="text-align:center;color:${dc};font-weight:700;vertical-align:top;padding:.4rem">${diff>0?'+':''}${diff}</td>`:''}</tr>`;
+  });
+  html+=`</tbody></table>`;el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
+//  MODAL PARTICIPANT
+// ═══════════════════════════════════════════
+function openModal(name){
+  const db=getDb(),entry=db[name];if(!entry)return;
+  document.getElementById('modal-name').textContent=name;
+  document.getElementById('modal-radar').classList.add('open');
+  switchTab('radar');
+  setTimeout(()=>{
+    buildRadar('modalChart',entry.pre?.scores,entry.post?.scores,'modal-legend');
+    buildQcmBox('modal-qcm-box',entry.pre?.qcm,entry.post?.qcm,null,null);
+    buildFullScoresTable('modal-scores-table',entry.pre,entry.post);
+  },60);
+}
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='radar'?0:1)));
+  document.getElementById('tab-radar').classList.toggle('hidden',t!=='radar');
+  document.getElementById('tab-scores').classList.toggle('hidden',t!=='scores');
+}
+
+// ═══════════════════════════════════════════
+//  IMPRESSION INDIVIDUELLE
+// ═══════════════════════════════════════════
+function printRadar(){
+  const name=document.getElementById('modal-name').textContent,db=getDb(),entry=db[name];if(!entry)return;
+  const pre=entry.pre?.scores,post=entry.post?.scores,preOpen=entry.pre?.openAnswers||{},postOpen=entry.post?.openAnswers||{};
+  const labels=JSON.stringify(ITEMS.map(i=>i.label));const ds=[];
+  if(pre) ds.push(`{label:'Avant formation',data:[${ITEMS.map(i=>pre[i.id]||1)}],borderColor:'#3c5ba9',backgroundColor:'rgba(60,91,169,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#3c5ba9'}`);
+  if(post) ds.push(`{label:'Après formation',data:[${ITEMS.map(i=>post[i.id]||1)}],borderColor:'#2a9d5c',backgroundColor:'rgba(42,157,92,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#2a9d5c'}`);
+  const hasEvol=pre&&post;
+  const tableRows=ITEMS.map(item=>{
+    const pr=pre?pre[item.id]:null,po=post?post[item.id]:null,diff=pr&&po?po-pr:null;
+    const dc=diff===null?'':diff>0?'#2a9d5c':diff<0?'#c0392b':'#888';
+    const oP=preOpen[item.id]||'',oPo=postOpen[item.id]||'';
+    return `<tr><td style="vertical-align:top;padding:.35rem .3rem;font-size:.78rem"><strong>${item.label}<\/strong>${oP?`<br><span style="color:#3c5ba9;font-size:.7rem;font-style:italic">Avant : ${oP}<\/span>`:''}${oPo?`<br><span style="color:#2a9d5c;font-size:.7rem;font-style:italic">Après : ${oPo}<\/span>`:''}<\/td>${pr!=null?`<td style="text-align:center;font-weight:600;vertical-align:top">${pr}<\/td>`:''}${po!=null?`<td style="text-align:center;font-weight:600;vertical-align:top">${po}<\/td>`:''}${diff!=null?`<td style="text-align:center;color:${dc};font-weight:700;vertical-align:top">${diff>0?'+':''}${diff}<\/td>`:''}<\/tr>`;
+  }).join('');
+  const qcmHtml=(entry.pre?.qcm||entry.post?.qcm)?`<div style="margin-top:1.25rem;background:#f8f5fc;border:.5px solid #d8c8ef;border-radius:8px;padding:.75rem 1rem"><div style="font-size:.72rem;font-weight:600;color:#7b4fa6;text-transform:uppercase;margin-bottom:.35rem">Si vous étiez une CPS incarnée…<\/div><div style="display:flex;gap:2rem;flex-wrap:wrap">${entry.pre?.qcm?`<div><div style="font-size:.7rem;color:#7b4fa6">Avant<\/div><div style="font-weight:500">${entry.pre.qcm}<\/div><\/div>`:''}${entry.post?.qcm?`<div><div style="font-size:.7rem;color:#2a9d5c">Après<\/div><div style="font-weight:500">${entry.post.qcm}<\/div><\/div>`:''}<\/div><\/div>`:'';
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Radar CPS — ${name}<\/title><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script><style>body{font-family:system-ui,sans-serif;padding:2rem;max-width:660px;margin:0 auto}h2{font-size:1.2rem;margin-bottom:.2rem}.sub{color:#888;font-size:.82rem;margin-bottom:1.25rem}.legend{display:flex;gap:1.5rem;margin-bottom:1rem;font-size:.82rem}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1.25rem}th{text-align:left;padding:.35rem .3rem;color:#888;font-weight:500;border-bottom:.5px solid #eee}td{padding:.35rem .3rem;border-bottom:.5px solid #f5f5f5}.pbtn{margin-bottom:1rem;padding:.4rem 1rem;cursor:pointer;border-radius:6px;border:.5px solid #3c5ba9;color:#3c5ba9;background:#fff}@media print{.pbtn{display:none}}<\/style><\/head><body><button class="pbtn" onclick="window.print()">🖨️ Imprimer \/ PDF<\/button><h2>Radar CPS — ${name}<\/h2><p class="sub">Auto-évaluation · IFEAP \/ CNEAP<\/p><div class="legend">${pre?'<span><span class="dot" style="background:#3c5ba9"><\/span>Avant la formation<\/span>':''}${post?'<span><span class="dot" style="background:#2a9d5c"><\/span>Après la formation<\/span>':''}<\/div><div style="position:relative;height:420px"><canvas id="c"><\/canvas><\/div>${qcmHtml}<table><thead><tr><th>Compétence<\/th>${pre?'<th style="text-align:center;color:#3c5ba9">Avant<\/th>':''}${post?'<th style="text-align:center;color:#2a9d5c">Après<\/th>':''}${hasEvol?'<th style="text-align:center">Évol.<\/th>':''}<\/tr><\/thead><tbody>${tableRows}<\/tbody><\/table><script>new Chart(document.getElementById('c'),{type:'radar',data:{labels:${labels},datasets:[${ds.join(',')}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:1,max:5,ticks:{stepSize:1,font:{size:9}},pointLabels:{font:{size:10.5}},grid:{color:'rgba(0,0,0,.07)'},angleLines:{color:'rgba(0,0,0,.09)'}}},plugins:{legend:{display:false}},elements:{line:{tension:.15}}}})<\/script><\/body><\/html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════
+//  IMPRESSION RADAR COLLECTIF
+// ═══════════════════════════════════════════
+function printCollectiveRadar(){
+  const col=computeCollective();
+  if(col.nPre===0&&col.nPost===0){alert('Aucune donnée. Synchronisez d\'abord.');return;}
+  const labels=JSON.stringify(ITEMS.map(i=>i.label));const ds=[];
+  if(col.pre) ds.push(`{label:'Avant (moy. ${col.nPre} pers.)',data:[${ITEMS.map(i=>col.pre[i.id]||1)}],borderColor:'#3c5ba9',backgroundColor:'rgba(60,91,169,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#3c5ba9'}`);
+  if(col.post) ds.push(`{label:'Après (moy. ${col.nPost} pers.)',data:[${ITEMS.map(i=>col.post[i.id]||1)}],borderColor:'#2a9d5c',backgroundColor:'rgba(42,157,92,.13)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#2a9d5c'}`);
+  const tableRows=ITEMS.map(item=>{
+    const pr=col.pre?col.pre[item.id]:null,po=col.post?col.post[item.id]:null;
+    const diff=pr&&po?r2(po-pr):null,dc=diff===null?'':diff>0?'#2a9d5c':diff<0?'#c0392b':'#888';
+    return `<tr><td>${item.label}<\/td>${pr!=null?`<td style="text-align:center;font-weight:600">${pr.toFixed(1)}<\/td>`:''}${po!=null?`<td style="text-align:center;font-weight:600">${po.toFixed(1)}<\/td>`:''}${diff!=null?`<td style="text-align:center;color:${dc};font-weight:700">${diff>0?'+':''}${diff.toFixed(1)}<\/td>`:''}<\/tr>`;
+  }).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Radar collectif CPS<\/title><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script><style>body{font-family:system-ui,sans-serif;padding:2rem;max-width:660px;margin:0 auto}h2{font-size:1.2rem;margin-bottom:.2rem}.sub{color:#888;font-size:.82rem;margin-bottom:1.25rem}.legend{display:flex;gap:1.5rem;margin-bottom:1rem;font-size:.82rem}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:1.25rem}th{text-align:left;padding:.35rem .3rem;color:#888;font-weight:500;border-bottom:.5px solid #eee}td{padding:.35rem .3rem;border-bottom:.5px solid #f5f5f5}.pbtn{margin-bottom:1rem;padding:.4rem 1rem;cursor:pointer;border-radius:6px;border:.5px solid #3c5ba9;color:#3c5ba9;background:#fff}@media print{.pbtn{display:none}}<\/style><\/head><body><button class="pbtn" onclick="window.print()">🖨️ Imprimer \/ PDF<\/button><h2>Radar collectif CPS<\/h2><p class="sub">Moyennes du groupe · IFEAP \/ CNEAP · ${new Date().toLocaleDateString('fr-FR')}<\/p><div class="legend">${col.pre?`<span><span class="dot" style="background:#3c5ba9"><\/span>Avant (${col.nPre} pers.)<\/span>`:''}${col.post?`<span><span class="dot" style="background:#2a9d5c"><\/span>Après (${col.nPost} pers.)<\/span>`:''}<\/div><div style="position:relative;height:420px"><canvas id="c"><\/canvas><\/div><table><thead><tr><th>Compétence<\/th>${col.pre?'<th style="text-align:center;color:#3c5ba9">Avant<\/th>':''}${col.post?'<th style="text-align:center;color:#2a9d5c">Après<\/th>':''}${col.pre&&col.post?'<th style="text-align:center">Évolution<\/th>':''}<\/tr><\/thead><tbody>${tableRows}<\/tbody><\/table><script>new Chart(document.getElementById('c'),{type:'radar',data:{labels:${labels},datasets:[${ds.join(',')}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:1,max:5,ticks:{stepSize:1,font:{size:9}},pointLabels:{font:{size:10.5}},grid:{color:'rgba(0,0,0,.07)'},angleLines:{color:'rgba(0,0,0,.09)'}}},plugins:{legend:{display:false}},elements:{line:{tension:.15}}}})<\/script><\/body><\/html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════
+//  EXPORT CSV
+// ═══════════════════════════════════════════
+function escCsv(v){if(v===null||v===undefined) return '';const s=String(v).replace(/"/g,'""');return (s.includes(SEP)||s.includes('"')||s.includes('\n')||s.includes('\r'))?`"${s}"`:s;}
+function exportCSV(){
+  const db=getDb(),names=Object.keys(db);if(!names.length){alert('Aucune donnée à exporter. Synchronisez d\'abord.');return;}
+  const headers=['Participant','Passation','Date'];
+  ITEMS.forEach(item=>headers.push(`Score - ${item.label}`));
+  ITEMS.forEach(item=>headers.push(`Réponse - ${item.label}`));
+  headers.push('CPS incarnée');
+  const rows=['sep=;',headers.map(escCsv).join(SEP)];
+  names.sort().forEach(name=>{['pre','post'].forEach(type=>{const d=db[name]?.[type];if(!d) return;const row=[name,type==='pre'?'Avant la formation':'Après la formation',d.date||''];ITEMS.forEach(item=>row.push(d.scores?.[item.id]??''));ITEMS.forEach(item=>row.push(d.openAnswers?.[item.id]||''));row.push(d.qcm||'');rows.push(row.map(escCsv).join(SEP));});});
+  const blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`cps_resultats_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+</script>
+</body>
+</html>
