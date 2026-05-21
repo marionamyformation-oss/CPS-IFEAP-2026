@@ -158,17 +158,9 @@ textarea{resize:vertical;min-height:78px;line-height:1.5}
       </div>
     </div>
 
-    <!-- PARAMÈTRES -->
-    <div class="card" id="config-card">
-      <div class="section-title">⚙️ Paramètres de connexion</div>
-      <p style="font-size:.83rem;color:#666;margin-bottom:.75rem">Renseignez l'URL de votre Google Apps Script pour activer la synchronisation des réponses.</p>
-      <label for="inp-script-url">URL Google Apps Script (Web App)</label>
-      <input type="text" id="inp-script-url" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:.78rem" />
-      <div style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center">
-        <button class="btn btn-primary" onclick="saveScriptUrl()" style="font-size:.8rem;padding:.45rem 1rem">Enregistrer</button>
-        <button class="btn btn-outline" onclick="testConnection()" style="font-size:.8rem;padding:.45rem 1rem">Tester la connexion</button>
-        <span id="test-result" style="font-size:.78rem;color:#666"></span>
-      </div>
+    <!-- PARAMÈTRES — masqués, accessibles uniquement depuis le tableau de bord -->
+    <div class="hidden" id="config-card">
+      <input type="text" id="inp-script-url" />
     </div>
   </div>
 </div>
@@ -284,6 +276,18 @@ textarea{resize:vertical;min-height:78px;line-height:1.5}
       <div id="participants-list"></div>
     </div>
 
+    <div class="card no-print">
+      <div class="section-title">⚙️ Paramètres de connexion</div>
+      <p style="font-size:.83rem;color:#666;margin-bottom:.75rem">URL du Google Apps Script utilisée pour la synchronisation.</p>
+      <label for="inp-script-url-admin">URL Google Apps Script</label>
+      <input type="text" id="inp-script-url-admin" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:.78rem" />
+      <div style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center">
+        <button class="btn btn-primary" onclick="saveScriptUrlAdmin()" style="font-size:.8rem;padding:.45rem 1rem">Enregistrer</button>
+        <button class="btn btn-outline" onclick="testConnection()" style="font-size:.8rem;padding:.45rem 1rem">Tester</button>
+        <span id="test-result" style="font-size:.78rem;color:#666"></span>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -333,6 +337,12 @@ const SEP = ';';
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqva20WsB7wFd8i9FUKUWkufllL2tcGYUzFFESVjXOWUEDOqoAF5Sbn--NI4cLv6Hxiw/exec';
 function getScriptUrl(){
   return localStorage.getItem('cps_script_url') || DEFAULT_SCRIPT_URL;
+}
+function saveScriptUrlAdmin(){
+  const v = document.getElementById('inp-script-url-admin').value.trim();
+  if(!v){alert('Veuillez saisir une URL valide.');return;}
+  localStorage.setItem('cps_script_url',v);
+  document.getElementById('test-result').innerHTML='<span style="color:var(--sage)">✓ URL enregistrée</span>';
 }
 function saveScriptUrl(){
   const v = document.getElementById('inp-script-url').value.trim();
@@ -656,6 +666,8 @@ async function syncFromSheet(){
 //  RENDU ADMIN
 // ═══════════════════════════════════════════
 function renderAdmin(){
+  const adminField = document.getElementById('inp-script-url-admin');
+  if(adminField) adminField.value = getScriptUrl();
   const db=getDb(),names=Object.keys(db),col=computeCollective(db);
   document.getElementById('participants-count').textContent=names.length;
 
